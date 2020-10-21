@@ -1,0 +1,6 @@
+black
+httpx
+elasticsearch
+elasticsearch-dsl
+typer
+
