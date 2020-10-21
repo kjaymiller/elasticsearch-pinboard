@@ -27,6 +27,23 @@ class Post(Document):
 methods = {"all": "posts/all", "recent": "posts/recent", "test": "posts/get"}
 
 
+def transform_tags(tags:str):
+    """convert the tags field to a list split on spaces"""
+    return tags.split(" ")
+
+
+def transform_meta(post_object: dict):
+    """set the _id of the dict object to the objects meta"""
+    return post_object['meta']
+
+
+def transform(json_object: dict):
+
+    for entry in json_object:
+        entry['_id'] = transform_meta(entry)
+        entry['tags'] = transform_tags(entry['tags'])
+        yield entry
+
 def pinboard_request(method: str, index: str = "pinboard"):
 
     if method not in methods.keys():
@@ -41,7 +58,7 @@ def pinboard_request(method: str, index: str = "pinboard"):
         typer.echo(r.content)
 
     json_object = r.json() if method == "all" else r.json()["posts"]
-    return bulk(client=client, index=index, actions=json_object)
+    return bulk(client=client, index=index, actions=(x for x in transform(json_object)))
 
 
 if __name__ == "__main__":
